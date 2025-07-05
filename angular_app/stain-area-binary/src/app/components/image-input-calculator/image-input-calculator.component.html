@@ -1,0 +1,13 @@
+<!-- <p>image-input-calculator works!</p> -->
+<div class="uploader">
+  <h2>Subir imagen binaria</h2>
+
+  <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+
+  <h3>Número de puntos aleatorios</h3>
+  <input type="range" min="100" max="10000" step="100" [(ngModel)]="points" />
+  <p>Puntos: {{ points }}</p>
+
+  <button (click)="onCalculate()">Calcular área estimada</button>
+</div>
+

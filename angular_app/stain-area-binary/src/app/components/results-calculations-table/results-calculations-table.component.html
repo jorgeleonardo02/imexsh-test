@@ -1,0 +1,23 @@
+
+ <h2>Resultados anteriores</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Total Puntos</th>
+      <th>Puntos Dentro</th>
+      <th>Área Estimada</th>
+      <th>Fecha</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let result of results$ | async">
+      <td>{{ result.id }}</td>
+      <td>{{ result.totalPoints }}</td>
+      <td>{{ result.insidePoints }}</td>
+      <td>{{ result.estimatedArea | number: '1.2-2' }}</td>
+      <td>{{ result.date | date: 'short' }}</td>
+    </tr>
+  </tbody>
+</table>

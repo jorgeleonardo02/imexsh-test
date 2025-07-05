@@ -1,0 +1,3 @@
+ERROR:root:Error reading DICOM: Cannot handle this data type: (1, 1, 512), |u1
+WARNING:root:Unsupported 3D pixel array format.
+WARNING:root:Unsupported 3D pixel array format.

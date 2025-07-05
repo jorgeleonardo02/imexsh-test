@@ -1,0 +1,1 @@
+from .devices_group_routes import device_group_router
