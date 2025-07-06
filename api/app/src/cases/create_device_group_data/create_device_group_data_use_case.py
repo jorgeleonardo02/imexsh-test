@@ -43,15 +43,21 @@ class CreateDeviceGroupDataUseCase:
             )
             
             device = Device(
-                id=device_id,
+                device_id=device_id,
                 device_name=group.device_name
             )
 
             devices_groups.append(device_group)
             devices.append(device)
         
-            await self.device_repository.add(device)
-            await self.device_group_repository.add(device_group)
+            try :
+                await self.device_group_repository.add(device_group)
+                await self.device_repository.add(device)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Error creating device group: {e}"
+                )
 
         message = "Image result created successfully"
 

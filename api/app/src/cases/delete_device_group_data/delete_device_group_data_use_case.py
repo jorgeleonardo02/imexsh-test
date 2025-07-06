@@ -18,16 +18,14 @@ class DeleteDeviceGroupDataUseCase:
 
     async def execute(self, request: DeleteDeviceGroupDataRequest) -> DeleteDeviceGroupDataResponse:
         
-        device_group = await self.device_group_repository.get_by_device_id(id)
+        device_group = await self.device_group_repository.get_by_id(request.id)
         if not device_group:
             self.__raise_exception(status_code=404, message="device group not found")
-
-        device = await self.device_repository.get_by_id(device_group.device_id)
-        if not device:
-            self.__raise_exception(status_code=404, message="device not found")
       
-        self.device_group_repository.delete(device_group_id=request.id)
-        self.device_repository.delete(id=device_group.device_id)
+        delected_data = await self.device_group_repository.delete(id=request.id)
+
+        if not delected_data:
+            self.__raise_exception(status_code=500, message="Error deleting device group data")
 
         message = "Device group data deleted successfully."
         return DeleteDeviceGroupDataResponse(result=True, message=message)

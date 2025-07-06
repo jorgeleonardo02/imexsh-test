@@ -9,6 +9,10 @@ class DeviceRepository(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_by_device_id(self, device_id: str) -> Device:
+        pass
+
+    @abc.abstractmethod
     def get_all(self) -> List[Device]:
         pass
 

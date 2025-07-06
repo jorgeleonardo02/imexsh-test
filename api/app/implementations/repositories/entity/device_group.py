@@ -7,7 +7,7 @@ class DeviceGroup(Base):
     __tablename__ = "device_groups"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    device_id = Column(String, ForeignKey("devices.id"), nullable=False)
+    device_id = Column(String(100), ForeignKey("devices.device_id", onupdate="CASCADE", ondelete="RESTRICT"), nullable=False)
     
     average_before_normalization = Column(Float, nullable=False)
     average_after_normalization = Column(Float, nullable=False)

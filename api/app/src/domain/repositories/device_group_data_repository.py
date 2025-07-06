@@ -29,5 +29,5 @@ class DeviceGroupDataRepository(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def delete(self, device_group_id: int) -> bool:
+    def delete(self, id: int) -> bool:
         pass

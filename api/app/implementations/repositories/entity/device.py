@@ -6,7 +6,8 @@ from .base import Base
 class Device(Base):
     __tablename__ = "devices"
 
-    id = Column(String, primary_key=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(String(100), nullable=False, unique=True)
     device_name = Column(String(100), nullable=False)
 
     # Relación con DeviceGroup

@@ -2,3 +2,5 @@
 */.venv
 # Python cache files
 */__pycache__
+# environment variables
+.env

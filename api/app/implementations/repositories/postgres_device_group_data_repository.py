@@ -1,12 +1,13 @@
+from fastapi import HTTPException
 from typing import Any, Dict, List, Optional
 from app.implementations.clients.postgres_db_client import PostgresDbClient
 from app.src.domain.repositories.device_group_data_repository import DeviceGroupDataRepository
 from app.implementations.repositories.entity.device_group import DeviceGroup
 from app.src.domain.models.device_group import DeviceGroupRequestFilters
+from sqlalchemy.future import select
 
 from app.src.exceptions.device_group_repository_exception import (DeviceGroupRepositoryError,
-                                                                  DeviceGroupRepositoryGetAllError,
-                                                                  DeviceGroupRepositoryNotFoundError)
+                                                                  DeviceGroupRepositoryGetAllError)
 
 def to_device_group_model(model):
     return DeviceGroup.model_validate(model)
@@ -19,7 +20,10 @@ class PostgresDeviceGroupDataRepository(DeviceGroupDataRepository):
         try:
             data = await self.postgres_db_client.get_by_id(model=DeviceGroup, id=id)
             if not data:
-                raise DeviceGroupRepositoryNotFoundError(f'Device group con id {id} no encontrado')
+                self.__raise_exception(
+                    status_code=404,
+                    message="Device group not found for id: {}".format(id)
+                )
             return DeviceGroup(id=data.id,
                                device_id=data.device_id,
                                average_before_normalization=data.average_before_normalization,
@@ -28,23 +32,31 @@ class PostgresDeviceGroupDataRepository(DeviceGroupDataRepository):
                                created_date=data.created_date,
                                updated_date=data.updated_date)
         except DeviceGroupRepositoryError as error:
-            raise DeviceGroupRepositoryError(f'Error al obtener el Device group: {error}')
-        
-    
-    async def get_by_device_id(self, id: int) -> DeviceGroup:
+            self.__raise_exception(
+                status_code=500,
+                message=f'Error al obtener el Device group: {error}'
+            )
+
+    async def get_by_device_id(self, device_id: int) -> DeviceGroup:
         try:
-            data = await self.postgres_db_client.get_by_device_id(model=DeviceGroup, device_id=id)
+            # 👇 Aquí sí hacemos SELECT por device_id con SQLAlchemy
+            async with self.postgres_db_client.session_local() as session:
+                stmt = select(DeviceGroup).where(DeviceGroup.device_id == device_id)
+                result = await session.execute(stmt)
+                data = result.scalars().first()
+
             if not data:
-                raise DeviceGroupRepositoryNotFoundError(f'Device group con device_id {id} no encontrado')
-            return DeviceGroup(id=data.id,
-                               device_id=data.device_id,
-                               average_before_normalization=data.average_before_normalization,
-                               average_after_normalization=data.average_after_normalization,
-                               data_size=data.data_size,
-                               created_date=data.created_date,
-                               updated_date=data.updated_date)
+                self.__raise_exception(
+                    status_code=404,
+                    message="Device group not found for device_id: {}".format(device_id)
+                )
+            return data
+
         except DeviceGroupRepositoryError as error:
-            raise DeviceGroupRepositoryError(f'Error al obtener el Device group: {error}')
+            self.__raise_exception(
+                status_code=500,
+                message=f'Error al obtener el Device group por device_id: {error}'
+            )
     
     async def get_all(self,
                   id: Optional[int],
@@ -69,18 +81,24 @@ class PostgresDeviceGroupDataRepository(DeviceGroupDataRepository):
             if data_list]
 
         except DeviceGroupRepositoryGetAllError as error:
-            raise DeviceGroupRepositoryGetAllError(f'Error al obtener los Devices groups: {error}')
+            self.__raise_exception(
+                status_code=500,
+                message=f'Error al obtener los Device groups: {error}'
+            )
 
 
     async def add(self, device_group: DeviceGroup) -> bool:
         try:
-            new_device_group = await self.postgres_db_client.create(model=DeviceGroup, data=device_group.__dict__)
+            model_dict = device_group.model_dump(exclude={"id"})
+            new_device_group = await self.postgres_db_client.create(model=DeviceGroup, data=model_dict)
             return True if new_device_group else False
         except DeviceGroupRepositoryError  as error:
-            raise DeviceGroupRepositoryError(f'Error al crear el Device group: {error}')
+            self.__raise_exception(
+                status_code=500,
+                message=f'Error al agregar el Device group: {error}'
+            )
 
-
-    async def update(self, device_group: DeviceGroup) -> bool:
+    async def update(self,device_group: DeviceGroup) -> bool:
         try:
             updated_device_group = await self.postgres_db_client.update(model=DeviceGroup, data=device_group.__dict__)
             return True if updated_device_group else False
@@ -108,3 +126,9 @@ class PostgresDeviceGroupDataRepository(DeviceGroupDataRepository):
             "average_after_normalization": (filters.average_after_normalization_from, filters.average_after_normalization_to),
             "data_size": (filters.data_size_from, filters.data_size_to)
         }
+    
+    def __raise_exception(self, status_code:int, message:str) -> None:
+        raise HTTPException(
+                status_code=status_code,
+                detail=message
+            )

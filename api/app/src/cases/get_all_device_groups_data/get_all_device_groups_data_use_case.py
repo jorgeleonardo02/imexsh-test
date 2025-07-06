@@ -1,10 +1,11 @@
 from fastapi import HTTPException
 from app.src.cases.get_all_device_groups_data import GetAllDeviceGroupDataRequest, GetAllDeviceGroupDataResponse
 from app.src.domain.repositories import (
-    DeviceGroupDataRepository,
-    DeviceRepository
+    DeviceGroupDataRepository
 )
 from app.src.domain.models.device_group import DeviceGroupRequestFilters
+from app.src.shemas.device_group_schema import DeviceGroupSchema
+
 
 class GetAllDeviceGroupsDataUseCase:
     def __init__(self,
@@ -19,7 +20,12 @@ class GetAllDeviceGroupsDataUseCase:
             self.__validate_filters(filters)
 
         result = await self.device_group_repository.get_all(id, filters)
-        return GetAllDeviceGroupDataResponse(device_groups=result)
+        return GetAllDeviceGroupDataResponse(
+            device_groups=[
+                DeviceGroupSchema.from_orm(item)
+                for item in result
+            ]
+        )
     
     def __validate_filters(self, filters: DeviceGroupRequestFilters):
         def validate_range(field_from, field_to, field_name):

@@ -4,7 +4,6 @@ from app.src.cases.create_device_group_data import CreateDeviceGroupDataUseCase
 from app.src.cases.delete_device_group_data import DeleteDeviceGroupDataUseCase
 from app.src.cases.update_device_group import UpdateDeviceGroupUseCase
 from app.src.cases.get_all_device_groups_data import GetAllDeviceGroupsDataUseCase
-from app.src.domain.repositories import DeviceGroupDataRepository, DeviceRepository
 
 def create_device_group_use_case() -> CreateDeviceGroupDataUseCase:
     device_repository = postgres_device_repository()

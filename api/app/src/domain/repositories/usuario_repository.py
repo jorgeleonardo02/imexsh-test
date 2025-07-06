@@ -3,7 +3,6 @@ from typing import List
 
 from app.src.domain.models import Usuario
 
-# Interfaz que define los métodos que debe implementar un repositorio de usuarios
 class UsuarioRepository(abc.ABC):
     @abc.abstractmethod
     def get_by_id(self, id: int) -> Usuario:
